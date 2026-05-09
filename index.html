@@ -217,7 +217,7 @@
     }
 
     textarea {
-      min-height: 280px;
+      min-height: 120px;
       resize: vertical;
       line-height: 1.45;
     }
@@ -243,11 +243,16 @@
       border-radius: 14px;
       background: color-mix(in srgb, var(--panel) 88%, #d6e7ff 12%);
       list-style: none;
-      min-height: 130px;
-      max-height: 240px;
+      min-height: 300px;
+      max-height: 420px;
       overflow-y: auto;
       display: grid;
       gap: 8px;
+    }
+
+    .composer {
+      display: grid;
+      gap: 10px;
     }
 
     .messages li {
@@ -292,6 +297,126 @@
         border-radius: 18px;
       }
     }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 0;
+        align-items: stretch;
+        justify-content: stretch;
+      }
+
+      .page {
+        width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+        gap: 12px;
+      }
+
+      .page-top {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: color-mix(in srgb, var(--card) 92%, transparent 8%);
+        padding: 4px 0 6px;
+        backdrop-filter: blur(8px);
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .subtitle {
+        margin-top: -2px;
+        font-size: 13px;
+      }
+
+      .layout {
+        gap: 10px;
+      }
+
+      body.auth-complete .layout {
+        min-height: calc(100vh - 142px);
+      }
+
+      body.auth-complete #loginPanel {
+        display: none;
+      }
+
+      .panel {
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .panel-title,
+      .dialog-block h2 {
+        font-size: 18px;
+      }
+
+      .login-form {
+        gap: 10px;
+      }
+
+      input,
+      textarea,
+      button {
+        font-size: 16px;
+      }
+
+      .dialog-block {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-height: calc(100vh - 178px);
+      }
+
+      body.auth-complete .dialog-block {
+        min-height: calc(100vh - 118px);
+      }
+
+      textarea {
+        min-height: 56px;
+        max-height: 120px;
+        border-radius: 14px;
+      }
+
+      .dialog-controls {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .dialog-hint {
+        font-size: 13px;
+        display: none;
+      }
+
+      #sendButton {
+        width: 100%;
+      }
+
+      .messages {
+        min-height: 0;
+        max-height: none;
+        height: 100%;
+        padding: 10px;
+        gap: 7px;
+      }
+
+      .messages li {
+        border-radius: 12px;
+        padding: 10px;
+      }
+
+      .composer {
+        position: sticky;
+        bottom: 0;
+        z-index: 4;
+        padding-top: 10px;
+        padding-bottom: calc(2px + env(safe-area-inset-bottom));
+        background: color-mix(in srgb, var(--card) 94%, transparent 6%);
+        border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent 25%);
+        backdrop-filter: blur(8px);
+      }
+    }
   </style>
 </head>
 <body>
@@ -306,7 +431,7 @@
     <p class="subtitle">Удобный вход и общение с преподавателем в одном окне</p>
 
     <div class="layout">
-      <section class="panel">
+      <section class="panel" id="loginPanel">
         <h2 class="panel-title section-title"><span class="icon">🔐</span>Вход в кабинет</h2>
         <form class="login-form" id="loginForm" action="#" method="post">
           <label>
@@ -326,12 +451,14 @@
 
       <section class="panel dialog-block">
         <h2 class="section-title"><span class="icon">💬</span>Окно диалога</h2>
-        <textarea name="dialog" id="dialogInput" placeholder="Введите сообщение..." disabled></textarea>
-        <div class="dialog-controls">
-          <p class="dialog-hint">После входа можно отправлять сообщения</p>
-          <button type="button" id="sendButton" disabled>Отправить</button>
-        </div>
         <ul class="messages" id="messagesList"></ul>
+        <div class="composer">
+          <textarea name="dialog" id="dialogInput" placeholder="Введите сообщение..." disabled></textarea>
+          <div class="dialog-controls">
+            <p class="dialog-hint">После входа можно отправлять сообщения</p>
+            <button type="button" id="sendButton" disabled>Отправить</button>
+          </div>
+        </div>
       </section>
     </div>
   </main>
@@ -344,6 +471,7 @@
     const loginInput = document.getElementById("loginInput");
     const passwordInput = document.getElementById("passwordInput");
     const authStatus = document.getElementById("authStatus");
+    const loginPanel = document.getElementById("loginPanel");
     const dialogInput = document.getElementById("dialogInput");
     const sendButton = document.getElementById("sendButton");
     const messagesList = document.getElementById("messagesList");
@@ -378,6 +506,8 @@
         authStatus.classList.remove("error");
         dialogInput.disabled = false;
         sendButton.disabled = false;
+        loginPanel.classList.add("is-authenticated");
+        document.body.classList.add("auth-complete");
         dialogInput.focus();
         return;
       }
@@ -386,6 +516,8 @@
       authStatus.classList.add("error");
       dialogInput.disabled = true;
       sendButton.disabled = true;
+      loginPanel.classList.remove("is-authenticated");
+      document.body.classList.remove("auth-complete");
     });
 
     sendButton.addEventListener("click", function () {
